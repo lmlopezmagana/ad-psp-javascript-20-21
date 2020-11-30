@@ -216,3 +216,4 @@ Como ruta, se suele utilizar el nombre de la entidad (hay grandes discusiones so
 | `POST` | `/user/` | Petición para crear un usuario | Un documento json con la estructura de usuario | (201) El usuario recién creado | (400) Petición incorrecta
 | `PUT` | `/user/:id` | Petición para modificar un usuario | Un documento json con la estructura de usuario | (200) El usuario modificado | (400) Petición incorrecta, (404) Usuario no encontrado
 | `DELETE` | `/user/:id` | Petición para eliminar un usuario | Vacío | (204) Cuerpo vacío | Sin problemas
+
