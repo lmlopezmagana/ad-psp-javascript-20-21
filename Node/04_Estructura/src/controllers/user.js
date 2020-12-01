@@ -1,4 +1,5 @@
 import { users } from '../models/';
+import { User } from '../models/users';
 
 
 const UserController = {
