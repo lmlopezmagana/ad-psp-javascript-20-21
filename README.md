@@ -18,6 +18,8 @@ Repositorio de todo lo relacionado con Javascript de los módulos de AD y PSP - 
 - [01_PrimerProyecto](./Node/01_PrimerProyecto/): ejemplo de creación de un proyecto Node con algunos elementos añadidos
 - [02_Express](./Node/02_Express/): añadir express al proyecto anterior y crear una primer aplicación web
 - [03_REST](./Node/03_REST/): modificación del proyecto anterior para crear una API REST
+- [04_Estructura](./Node/04_Estructura/README.MD): ejemplo que, siguiendo las indicaciones anteriores, va marcando una estructura modular para la creación de un API Rest.
+- [05_RestoPeticiones](./Node/05_RestoPeticiones/README.MD): continuación del ejemplo anterior para añadir las peticiones `POST`, `PUT` y `DELETE`.
 
 ## MongoDb
 
