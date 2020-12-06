@@ -20,6 +20,7 @@ Repositorio de todo lo relacionado con Javascript de los módulos de AD y PSP - 
 - [03_REST](./Node/03_REST/): modificación del proyecto anterior para crear una API REST
 - [04_Estructura](./Node/04_Estructura/README.MD): ejemplo que, siguiendo las indicaciones anteriores, va marcando una estructura modular para la creación de un API Rest.
 - [05_RestoPeticiones](./Node/05_RestoPeticiones/README.MD): continuación del ejemplo anterior para añadir las peticiones `POST`, `PUT` y `DELETE`.
+- [06_Validacion](./Node/06_Validacion/README.MD): continuación del ejemplo anterior, donde se añade la validación de peticiones.
 
 ## MongoDb
 
