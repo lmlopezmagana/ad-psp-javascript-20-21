@@ -579,6 +579,7 @@ Si enviamos un token válido, se crean los nuevos posts.
 
 ## 7.6 ¿Qué quedaría pendiente?
 
+- Rehacer la petición `/me`, que permite saber los datos de un usuario conociendo su token.
 - Definir el uso de roles en los usuarios. Permitirá segmentar diferentes grupos de funcionalidades dependiendo del tipo de usuario.
 - Persistir toda la información en base de datos, de forma que los repositorios hagan consultas a MongoDB.
 - Uso de HTTPS en producción.
