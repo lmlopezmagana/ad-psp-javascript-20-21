@@ -20,12 +20,7 @@ passport.use(new LocalStrategy({
     else if (!bcrypt.compareSync(password, user.password))
         return done(null, false); // No coincide la contraseña
     else
-        return done(null, {
-            id: user.id,
-            fullname: user.fullname,
-            username: user.username,
-            email: user.email
-        });
+        return done(null, user.toDto());
 
 }));
 

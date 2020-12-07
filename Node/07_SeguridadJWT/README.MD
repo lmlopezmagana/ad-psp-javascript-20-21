@@ -278,15 +278,12 @@ passport.use(new LocalStrategy({
     else if (!bcrypt.compareSync(password, user.password))
         return done(null, false); // No coincide la contraseña
     else
-        return done(null, {
-            id: user.id,
-            fullname: user.fullname,
-            username: user.username,
-            email: user.email
-        });
+        return done(null, user.toDto());
 
 }));
 ```
+
+> El método `User.toDto()` nos devuelve un objeto `User` pero sin algunas propiedades, como la password, que no se debería mostrar abiertamente aunque esté cifrada. Si quieres saber más sobre el patrón DTO (_Data Tansfer Object_) puedes leer aquí [https://martinfowler.com/eaaCatalog/dataTransferObject.html](https://martinfowler.com/eaaCatalog/dataTransferObject.html).
 
 Ahora, debemos definir la estrategia para JWT. Para crear esta, necesitamos importarla y proporcionarle una serie de opciones, entre las que está el método que va a usar para extraer el token de una petición protegida con autenticación, el SECRET para el algoritmo y éste en sí. En nuestro caso, usaremos la opción más habitual, que es recoger el token del encabezado `Authorization` y siempre que empiece por `Bearer `. 
 
