@@ -168,8 +168,8 @@ JWT_SECRET=esteEsElSecretoMásSecretoDeTodosLosSecretos
 # Número de rondas utiliadas para el algoritmo de hashing de la contraseña
 BCRYPT_ROUNDS=12
 
-# Vida del token en segundos
-JWT_LIFETIME=86400
+# Vida del token
+JWT_LIFETIME=1d
 
 # Algoritmo utilizado para el cifrado del token
 JWT_ALGORITHM=HS256
@@ -186,29 +186,28 @@ Una vez hecho esto, vamos a definir una estructura para el uso de passport:
 
 Realizamos algunos cambios para dar soporte a la autenticación
 
-- Añadimos el campos password al modelo de usuario
+- Añadimos el campo password al modelo de usuario
+- Cambiamos el valor que teníamos hasta ahora de username a fullname, y dejamos username para que sea más conveniente de cara al login.
 - Añadimos una contraseña cifrada a los usuarios de ejemplo
 - Para ellos, necesitamos importar la librería bcrypt y las variables de entorno
 
 ```javascript
-import 'dotenv/config';
-import bcrypt from 'bcryptjs';
-
 class User {
     // modificamos el constructor, dejando el id al final para hacerlo optativo
-    constructor(username, email, password, id=0) {
+    constructor(username, fullname, email, password, id=0) {
         this.id = id;
         this.username = username;
+        this.fullname = fullname
         this.email = email;
         this.password = password;
     }
 }
 
-const password = bcrypt.hashSync('12345678', process.env.BCRYPT_ROUNDS);
+const password = bcrypt.hashSync('12345678', parseInt(process.env.BCRYPT_ROUNDS));
 
 let users = [
-    new User('Luis Miguel López', 'luismi@email.com', password,  1),
-    new User('Ángel Naranjo', 'angel@email.com', password, 2)
+    new User('lmlopez', 'Luis Miguel López', 'luismi@email.com', password,  1),
+    new User('anaranjo','Ángel Naranjo', 'angel@email.com', password, 2)
 ];
 ```
 
@@ -216,7 +215,8 @@ Nótese como se incluye la misma contraseña a todos los usuarios por ser un eje
 
 Posteriormente, añadimos un par de métodos:
 
-- Uno que nos sirve para verificar si un `username` ya está insertado en la colección de usuarios, y otro para encontrar a un usuario por su nombre de usuario.
+- Uno que nos sirve para verificar si un `username` ya está insertado en la colección de usuarios, 
+- y otro para encontrar a un usuario por su nombre de usuario.
 
 ```javascript
 const usernameExists = (username) => {
@@ -244,10 +244,10 @@ Vamos a inaugurar la carpeta `src/services/passport` creando un fichero `index.j
 
 En primer lugar definimos la estrategia local. Esta estrategia de passport sirve para autenticar a un usuario utilizando su nombre de usuario y contraseña. Comprueba en el almacén (repositorio, base de datos, ...) si el ususario existe y las constraseñas coinciden y, en tal caso, da por autenticado al usuario.
 
-La forma de crear y configurar una estrategia es a través del método `passport.use(...)`. En este caso usamos la versión que agrega un nombre a la estrategia:
+La forma de crear y configurar una estrategia es a través del método `passport.use(...)`:
 
 ```javascript
-passport.use('password', new LocalStrategy({
+passport.use(new LocalStrategy({
     usernameField: "username",
     passwordField: "password",
     session: false
@@ -267,7 +267,7 @@ import { User, userRepository } from '../../models/users';
 import bcrypt from 'bcryptjs';
 
 
-passport.use('password', new LocalStrategy({
+passport.use(new LocalStrategy({
     usernameField: "username",
     passwordField: "password",
     session: false
@@ -278,19 +278,26 @@ passport.use('password', new LocalStrategy({
     else if (!bcrypt.compareSync(password, user.password))
         return done(null, false); // No coincide la contraseña
     else
-        return done(null, user);
+        return done(null, {
+            id: user.id,
+            fullname: user.fullname,
+            username: user.username,
+            email: user.email
+        });
 
 }));
 ```
 
-Ahora, debemos definir la estrategia para JWT. Para crear esta, necesitamos importarla y proporcionarle una serie de opciones, entre las que está el método que va a usar para extraer el token de una petición protegida con autenticación, el SECRET para el algoritmo y éste en sí. En nuestro caso, usaremos la opción más habitual, que es recoger el token de el campo `Authorization` de la cabecera de la petición. 
+Ahora, debemos definir la estrategia para JWT. Para crear esta, necesitamos importarla y proporcionarle una serie de opciones, entre las que está el método que va a usar para extraer el token de una petición protegida con autenticación, el SECRET para el algoritmo y éste en sí. En nuestro caso, usaremos la opción más habitual, que es recoger el token del encabezado `Authorization` y siempre que empiece por `Bearer `. 
 
 ```javascript
 /** config de estrategia jwt de passport ******/
-let opts = {}
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = process.env.JWT_SECRET;
-opts.algorithms = [process.env.JWT_ALGORITHM];
+const opts = {
+    jwtFromRequest : ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey : process.env.JWT_SECRET,
+    algorithms : [process.env.JWT_ALGORITHM]
+};
+
 
 passport.use('token', new JwtStrategy(opts, (jwt_payload, done)=>{
 
@@ -325,7 +332,7 @@ import passport from './services/passport';
 app.use(passport.initialize());
 ```
 
-### 7.5.3 Rutas y controladores
+### 7.5.3 Rutas y controladores para el registro.
 
 Ahora sí añadimos los endpoints para el registro y el login. Para ello creamos un nuevo controlador en `src/controllers/auth.js`.
 
@@ -360,10 +367,224 @@ const AuthController = {
     login: (req, res, next) => {
 
     }
-
-
 }
 ```
+
+En el fichero `src/routes/auth.js` añadimos todo lo necesario para definir la ruta y la validación
+
+```javascript
+import { Router } from 'express';
+import { body } from 'express-validator';
+import { emailExists, usernameExists } from '../models/users';
+import { AuthController } from '../controllers/auth';
+import { validar } from '../middlewares/validacion';
+
+
+const router = Router();
+
+router.post('/register', [
+    body('username')
+        .isLength({min: 5})
+        .withMessage('La longitud mínima del nombre de usuario son 5 caracteres')
+        .custom(username => {
+            if (usernameExists(username)) {
+                throw new Error('El nombre de usuario ya existe. Escoja otro diferente')
+            } else
+                return true;
+        }),
+    body('password').isLength({min: 8}).withMessage('La contraseña debe tener como mínimoo 8 caracteres'),
+    body('email')
+        .isEmail()
+        .withMessage('El campo email debe ser un email válido')
+        .custom(email => {
+            if(emailExists(email)) {
+                throw new Error('El email ya está registrado. Proporcione un valor diferente');
+            } else {  
+                return true;
+            }
+        }),
+    body('id').not().exists().withMessage('No es necesario que proporcione un ID; este se asignará automáticamente')
+],
+validar, 
+AuthController.register);
+
+
+export default router;
+```
+
+El caso del login no es tan sencillo, ya que es este el momento en el que tenemos que crear el token.
+
+### 7.5.4 Métodos que crean y comprueban el token
+
+Vamos a crear un nuevo servicio, que haciendo uso de la librería jsonwebtoken, será capaz de generar un token con los datos de usuario que más nos convenga, y que usaremos en el endpoint del login.
+
+`src/services/jwt/index.js`
+```javascript
+import 'dotenv/config';
+import jwt from 'jsonwebtoken';
+
+const secret = process.env.JWT_SECRET;
+const jwtLifetime = process.env.JWT_LIFETIME;
+const jwtAlgorithm = process.env.JWT_ALGORITHM
+
+export const JwtService = {
+    /**
+     * Método que recibe el payload y el secreto,
+     * y nos devuelve el token
+     */
+    sign: (user) => jwt.sign({sub: user.id}, secret, {
+                        algorithm: jwtAlgorithm,
+                        expiresIn: jwtLifetime
+                    })
+    
+    ,
+    /**
+     * Método que recibe el token y verifica si es válido
+     * o no
+     */
+    verify: (token) => jwt.verify(token, secret)
+    
+}
+```
+
+Ahora vamos a añadir un método que se encargará de autenticar, usando passport, y que invocaremos a la hora de hacer la petición de login, de forma que primero autenticamos al usuario, y posteriormente creamos el token necesario y lo firmamos.
+
+`src/services/passport/index`
+```javascript
+export const password = () => (req, res, next) =>
+    passport.authenticate('local', {session: false}, (err, user, info) => {
+        if (err)
+            return res.status(400).json(err)
+        else if (err || !user)
+            return res.status(401).end()
+        
+        req.logIn(user, { session: false }, (err) => {
+            if (err) return res.status(401).end()
+            next()
+        })
+    })(req, res, next);
+
+```
+
+Esta forma de autenticar está inspirada en la documentación de passport ([http://www.passportjs.org/docs/authenticate/](http://www.passportjs.org/docs/authenticate/)) y básicamente realiza las siguientes tareas:
+
+- Invoca la autenticación local (`LocalStrategy`) que compara el `username` y el `password`.
+- Si hay algún error de petición, devuelve un código `400` y los errores
+- Si el usuario proporcionado no se puede autenticar, devuelve un error `401`.
+- Si el usuario proporcionado y su contraseña son correctos, loguea al usuario (`req.logIn`) y continua la ejecución.
+
+Este último paso hace que en `req.user` tengamos a nuestra disposición el objeto usuario que se ha logueado (tal como lo definimos en la estregia local).
+
+### 7.5.5 Rutas y controladores para el login.
+
+Una vez que hemos definido el método que nos servirá de base para el registro, así como el método capaz de generar el token, podemos crear el endpoint de login.
+
+`src/routes/auth.js`
+```javascript
+router.post('/login',
+    password(),
+    AuthController.login
+    );
+```
+
+El método `password`, que hemos definido en el apartado anterior, sirve de middleware para la realización del login. Y el método `AuthController.login` servirá para devolver la respuesta al usuario con el token creado.
+
+`src/controllers/auth.js`
+```javascript
+// Resto de imports
+import { JwtService } from '../services/jwt';
+
+const AuthController = {
+
+    // Otros métodos
+    
+    login: (req, res, next) => {
+        // Dado que la mitad del esfuerzo lo hace la función password del servicio passport
+        // Aquí tan solo tenemos que preocuparnos de generar y devolver el token
+        const token = JwtService.sign(req.user);
+        res.status(201).json({
+            user: req.user,
+            token: token
+        });
+    }
+}
+```
+
+Si tratamos de hacer una petición de login a `http://localhost:3000/auth/login` con un usuario válido, nos debe devolver los datos del usuario y el token.
+
+![Ejemplo de login con postman](./login-postman-example.png)
+
+# 7.5.6 ¿Hemos terminado? No. Nos queda la securización de rutas
+
+Aun nos queda un último paso. Si queremos que un usuario tenga que loguearse para obtener un token, es porque posteriormente utilizará ese token para realizar algún tipo de peticiones.
+
+**Cada aplicación tendrá sus propias necesidades de seguridad**. En la nuestra, por ejemplo:
+
+- Podríamos hacer que todas las peticiones, salvo el login, estuvieran tras la seguridad, es decir, que haga falta el token para todas.
+- O cualquiera podría hacer peticiones `GET`, y para el resto de peticiones sí que sea necesario estar autenticado.
+- ...
+
+En nuestro caso, vamos a implementar una clase `Post` (publicación en algo estilo un foro) con las peticiones más básicas de obtener todos, obtener uno por el ID y crear uno nuevo. Esta última petición será la que tendremos securizada (es decir, si no recibe el token en la petición devolverá un 401). Además, aprovecharemos el usuario autenticado (`req.user`) para identificar el autor del post.
+
+```javascript
+export const PostController = {
+
+    // Resto de métodos
+    crearNuevoPost: (req, res) => {
+        // No hace falta que nos proporcionen el ID del usuario.
+        // Lo tomamos directamente de la autenticación vía JWT
+        let postCreado = postRepository.create(new Post(req.user.id, req.body.title, req.body.text));
+        res.status(201).json(postCreado);
+    }
+}
+```
+
+Para abreviar, puedes consultar el código fuente en:
+
+- [Modelo y repositorio](./src/models/posts.js)
+- [Controlador](./src/controllers/post.js)
+- [Enrutador](./src/routes/post.js)
+
+Al igual que antes hemos creado un middleware llamado `passport`, ahora vamos a crear uno llamado `token`, que podremos utilizar en aquellas peticiones que sea necesario el token:
+
+`src/services/passport/index.js`
+```javascript
+export const token = () => (req, res, next) =>
+    passport.authenticate('token', { session: false }, (err, user, info) => {
+    if (err ||  !user) {
+        return res.status(401).end()
+    }
+    req.logIn(user, { session: false }, (err) => {
+        if (err) return res.status(401).end()
+        next()
+    })
+})(req, res, next);
+```
+
+Este método autentica al usuario usando la estrategia `JwtStrategy`. Si todo va bien, procesa el token, encuentra al usuario por su ID y guarda el objeto user en `req.user` (ver en este mismo fichero la definición de la estrategia JWT).
+
+Podemos utilizar en el router este middleware de la siguiente forma:
+
+`src/routes/post.js`
+```javascript
+router.post('/', 
+    token(),
+    PostController.crearNuevoPost);
+```
+
+A la hora de hacer la petición, si no proporcionamos un token válido, obtenemos un error 401.
+
+![Petición POST sin token](./peticion-post-sin-token.png)
+
+Si enviamos un token válido, se crean los nuevos posts.
+
+![Petición POST con token](./peticion-post-con-token.png
+
+## 7.6 ¿Qué quedaría pendiente?
+
+- Definir el uso de roles en los usuarios. Permitirá segmentar diferentes grupos de funcionalidades dependiendo del tipo de usuario.
+- Persistir toda la información en base de datos, de forma que los repositorios hagan consultas a MongoDB.
+- Uso de HTTPS en producción.
 
 
 # Bibliografía
@@ -371,3 +592,4 @@ const AuthController = {
 1. [https://davidinformatico.com/jwt-express-js-passport/](https://davidinformatico.com/jwt-express-js-passport/)
 2. [https://davidinformatico.com/jwt-express-js-sin-passport/](https://davidinformatico.com/jwt-express-js-sin-passport/)
 3. [https://enmilocalfunciona.io/construyendo-una-web-api-rest-segura-con-json-web-token-en-net-parte-i/](https://enmilocalfunciona.io/construyendo-una-web-api-rest-segura-con-json-web-token-en-net-parte-i/)
+4. [https://github.com/auth0/node-jsonwebtoken#readme](https://github.com/auth0/node-jsonwebtoken#readme)

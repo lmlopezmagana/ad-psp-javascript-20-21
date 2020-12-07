@@ -4,19 +4,29 @@ import bcrypt from 'bcryptjs';
 
 class User {
     // modificamos el constructor, dejando el id al final para hacerlo optativo
-    constructor(username, email, password, id=0) {
+    constructor(username, fullname, email, password, id=0) {
         this.id = id;
         this.username = username;
+        this.fullname = fullname
         this.email = email;
         this.password = password;
+    }
+
+    toDto() {
+        return {
+            id: this.id,
+            username: this.username, 
+            fullname: this.fullname,
+            email: this.email
+        }
     }
 }
 
 const password = bcrypt.hashSync('12345678', parseInt(process.env.BCRYPT_ROUNDS));
 
 let users = [
-    new User('Luis Miguel López', 'luismi@email.com', password,  1),
-    new User('Ángel Naranjo', 'angel@email.com', password, 2)
+    new User('lmlopez', 'Luis Miguel López', 'luismi@email.com', password,  1),
+    new User('anaranjo','Ángel Naranjo', 'angel@email.com', password, 2)
 ];
 
 /**
@@ -71,7 +81,7 @@ const userRepository = {
     create(newUser) {
         const lastId = users.length == 0 ? 0 : users[users.length-1].id;
         const newId = lastId + 1;
-        const result = new User(newUser.username, newUser.email, bcrypt.hashSync(newUser.password, process.env.BCRYPT_ROUNDS), newId);
+        const result = new User(newUser.username, newUser.fullname, newUser.email, bcrypt.hashSync(newUser.password, parseInt(process.env.BCRYPT_ROUNDS)), newId);
         users.push(result);
         return result;
     },
@@ -99,5 +109,6 @@ const userRepository = {
 export  {
     User,
     userRepository,
-    emailExists
+    emailExists,
+    usernameExists
 }

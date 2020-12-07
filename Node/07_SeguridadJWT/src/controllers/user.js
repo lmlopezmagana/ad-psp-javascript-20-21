@@ -24,10 +24,6 @@ const UserController = {
 
     },
 
-    me: (req, res) => {
-        res.json(req.context.me);
-    },
-
     nuevoUsuario: (req, res) => {
         let usuarioCreado = userRepository.create(new User(req.body.username, req.body.email));
         res.status(201).json(usuarioCreado);

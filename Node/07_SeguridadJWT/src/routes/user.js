@@ -8,7 +8,7 @@ const router = Router();
 
 router.get('/', UserController.todosLosUsuarios)
 
-router.get('/me', UserController.me);
+// router.get('/me', UserController.me);
 
 router.get('/:id', [
         param('id').isInt().withMessage('ID debe ser un número entero')
@@ -18,6 +18,7 @@ router.get('/:id', [
 
 router.post('/', [
         body('username').isLength({min: 5}).withMessage('La longitud mínima del nombre de usuario son 5 caracteres'),
+        body('fullname').exists(),
         body('email')
             .isEmail()
             .withMessage('El campo email debe ser un email válido')

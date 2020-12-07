@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { User, userRepository } from '../models/users';
 import bcrypt from 'bcryptjs';
+import { JwtService } from '../services/jwt';
 
 
 
@@ -26,7 +27,13 @@ const AuthController = {
         });
     },
     login: (req, res, next) => {
-
+        // Dado que la mitad del esfuerzo lo hace la función password del servicio passport
+        // Aquí tan solo tenemos que preocuparnos de generar y devolver el token
+        const token = JwtService.sign(req.user);
+        res.status(201).json({
+            user: req.user,
+            token: token
+        });
     }
 
 

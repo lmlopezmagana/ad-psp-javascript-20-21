@@ -42,22 +42,16 @@ app.use(passport.initialize());
 app.use((req, res, next) => {
   // Para cualquier petición, añadimos en su contexto
   req.context = {
-    // Todos los modelos
-    models,
-    // El "usuario actual". Ahora mismo simula que hayamos hecho un login
-    // Más adelante, lo podremos conseguir de otra forma.
-    // me: models.users.userRepository.findById(1)
+    models
   };
   next();
 });
 
 
-
-
-
 // Configuración de las rutas.
 app.use('/users', routes.user);
 app.use('/post', routes.post);
+app.use('/auth', routes.auth)
 
 
 

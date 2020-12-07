@@ -21,6 +21,7 @@ Repositorio de todo lo relacionado con Javascript de los módulos de AD y PSP - 
 - [04_Estructura](./Node/04_Estructura/README.MD): ejemplo que, siguiendo las indicaciones anteriores, va marcando una estructura modular para la creación de un API Rest.
 - [05_RestoPeticiones](./Node/05_RestoPeticiones/README.MD): continuación del ejemplo anterior para añadir las peticiones `POST`, `PUT` y `DELETE`.
 - [06_Validacion](./Node/06_Validacion/README.MD): continuación del ejemplo anterior, donde se añade la validación de peticiones.
+- [07_SeguridadJWT](./Node/07_SeguridadJWT/README.MD): implementación de la seguridad basada en tokens JWT. Se parte del ejemplo anterior un poco tuneado.
 
 ## MongoDb
 
