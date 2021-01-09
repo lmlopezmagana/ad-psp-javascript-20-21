@@ -22,6 +22,8 @@ Repositorio de todo lo relacionado con Javascript de los módulos de AD y PSP - 
 - [05_RestoPeticiones](./Node/05_RestoPeticiones/README.MD): continuación del ejemplo anterior para añadir las peticiones `POST`, `PUT` y `DELETE`.
 - [06_Validacion](./Node/06_Validacion/README.MD): continuación del ejemplo anterior, donde se añade la validación de peticiones.
 - [07_SeguridadJWT](./Node/07_SeguridadJWT/README.MD): implementación de la seguridad basada en tokens JWT. Se parte del ejemplo anterior un poco tuneado.
+- [08_Promesas](./Node/08_Promesas/README.md): teoría y ejemplos de uso de promesas y `async/await`.
+- [09_Mongoose_Parte1](./Node/09_MongooseParte1/README.MD): ejemplo que parte del ejemplo 6 para implementar la persistencia en base de datos haciendo uso de Mongoose.
 
 ## MongoDb
 
