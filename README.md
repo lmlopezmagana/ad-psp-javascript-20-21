@@ -24,6 +24,6 @@ Repositorio de todo lo relacionado con Javascript de los módulos de AD y PSP - 
 - [07_SeguridadJWT](./Node/07_SeguridadJWT/README.MD): implementación de la seguridad basada en tokens JWT. Se parte del ejemplo anterior un poco tuneado.
 - [08_Promesas](./Node/08_Promesas/README.md): teoría y ejemplos de uso de promesas y `async/await`.
 - [09_Mongoose_Parte1](./Node/09_MongooseParte1/README.MD): ejemplo que parte del ejemplo 6 para implementar la persistencia en base de datos haciendo uso de Mongoose.
+- [10_Mongoose_Parte2](./Node/10_MongooseParte2/README.MD): ejemplo que parte _desde cero_ para implementar la persistencia en base de datos haciendo uso de Mongoose con un modelo con datos referenciados, utilizando la función `populate` a la hora de consultar.
 
-## MongoDb
 

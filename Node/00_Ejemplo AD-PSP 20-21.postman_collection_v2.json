@@ -1,0 +1,494 @@
+{
+	"info": {
+		"_postman_id": "ce04f769-ab38-4816-8764-e9cc4243b8c9",
+		"name": "00_Ejemplo AD-PSP 20-21",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "04_Estructura",
+			"item": [
+				{
+					"name": "GET Usuario por id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/users/3",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"users",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Todos los usuarios",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/users/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "05_RestoPeticiones",
+			"item": [
+				{
+					"name": "POST Crear nuevo usuario",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"pepito\",\n    \"email\": \"luismii@email.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/users/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Editar Usuario",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 3,\n    \"username\": \"Periquillo\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/users/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"users",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Borrar usuario por ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/users/3",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"users",
+								"3"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "07_SeguridadJWT",
+			"item": [
+				{
+					"name": "POSTS",
+					"item": [
+						{
+							"name": "GET Todos los posts",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3000/post",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"post"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST Nuevo Post",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTYwNzMzODM0OSwiZXhwIjoxNjA3NDI0NzQ5fQ.GWOvYU_WC_o23RkvGbXG0zDCe6-MbO5E3kna6BtDXq8",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"Este es un nuevo post desde Postman\",\n    \"text\": \"Jejeje jejejeje jeje\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:3000/post/",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"post",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "POST Registro",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"lmlopez\",\n    \"password\": \"12345678\",\n    \"email\": \"luismi.lopezalesianos.edu\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/auth/register",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"lmlopez\",\n    \"password\": \"12345678\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "10_Mongoose",
+			"item": [
+				{
+					"name": "Persona",
+					"item": [
+						{
+							"name": "POST Nueva persona",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"George Lucas\",\n    \"urlFoto\": \"https://static.wikia.nocookie.net/esstarwars/images/9/9f/GeorgeLucas.jpg/revision/latest?cb=20080929015015\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:3000/persona",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"persona"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Todas las personas",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3000/persona",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"persona"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Una persona por ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3000/persona/5ffc9423ce12d5ce19cf48ca",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"persona",
+										"5ffc9423ce12d5ce19cf48ca"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Pelicula",
+					"item": [
+						{
+							"name": "Añadir / Quitar actores",
+							"item": [
+								{
+									"name": "POST Nueva persona (actor 1)",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"nombre\": \"Mark Hamill\",\n    \"urlFoto\": \"https://images.mediotiempo.com/Sk_nn3j-NG1VUDgOofp9D9obFuM=/958x596/uploads/media/2019/12/18/luke-skywlaker.jpg\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://localhost:3000/persona",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "3000",
+											"path": [
+												"persona"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST Nueva persona (actor 2)",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"nombre\": \"Carrie Fisher\",\n    \"urlFoto\": \"https://www.ecestaticos.com/imagestatic/clipping/deb/f19/debf1977cda210af3e7112cbf290bf6b.jpg\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://localhost:3000/persona",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "3000",
+											"path": [
+												"persona"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST Añadir actor a película",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:3000/pelicula/5ffc94f1ce12d5ce19cf48cb/actor/5ffc9840ae7a33cfd119cb9b",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "3000",
+											"path": [
+												"pelicula",
+												"5ffc94f1ce12d5ce19cf48cb",
+												"actor",
+												"5ffc9840ae7a33cfd119cb9b"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "DEL Borrar actor de película",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:3000/pelicula/5ffc94f1ce12d5ce19cf48cb/actor/5ffc9840ae7a33cfd119cb9b",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "3000",
+											"path": [
+												"pelicula",
+												"5ffc94f1ce12d5ce19cf48cb",
+												"actor",
+												"5ffc9840ae7a33cfd119cb9b"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "POST Nueva película",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"titulo\": \"Episodio IV. Una nueva esperanza (a.k.a Star Wars)\",\n    \"portadaURL\": \"https://images-na.ssl-images-amazon.com/images/I/81P3lDJbjCL._AC_SL1347_.jpg\",\n    \"director\": \"5ffc9423ce12d5ce19cf48ca\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:3000/pelicula",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"pelicula"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Pelicula por ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3000/pelicula/5ffc94f1ce12d5ce19cf48cb",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"pelicula",
+										"5ffc94f1ce12d5ce19cf48cb"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}
