@@ -13,8 +13,4 @@ router.put('/:id', PersonaController.editarPersona);
 
 router.delete('/:id', PersonaController.eliminarPersona);
 
-
-
-
-
 export default router;

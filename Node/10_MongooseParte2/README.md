@@ -369,11 +369,418 @@ Vamos a implementar un _sencillo_ ejemplo que trabaje con dos modelos: `Pelicula
 
 > Cabe destacar que para no hacer más complejo el ejemplo, no incluye ni seguridad ni validación.
 
+## 4.1 Modelos
+
+Creamos dos ficheros dentro de la carpeta `src/models`: `pelicula.js` y `persona.js`.
+
+`src/models/persona.js`:
+
+```javascript
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
+
+const personaSchema = new Schema({
+    nombre: String,
+    urlFoto: String
+});
+
+const Persona = mongoose.model('Persona', personaSchema);
+
+```
+
+En primer lugar realizamos las importaciones oportunas y definimos el esquema. Este será simple, y estará formado solamente por dos cadenas de caracteres: el `nombre` y la `urlFoto` de la persona. Estas personas, como veremos más adelante, podrán representar a los directores y a los actores de las películas.
 
 
+Más adelante, en el mismo fichero, definimos el repositorio:
+
+> En la literatura sobre Mongoose, es más habitual encontrar que los programadores unifican en un método el controlador y la operación sobre los datos en un solo método, haciendo uso de promesas y los métodos `then` y `catch`. En nuestro caso haremos uso de `async/await` que nos permite definir un objeto repositorio, con métodos que reciben argumentos y producen valores resultado.
+
+```javascript
+const PersonaRepository = {
+
+    async findAll() {
+        return await Persona.find().exec();
+    },
+
+    async findById(id) {
+        const result = await Persona.findById(id).exec();
+        return result != null ? result : undefined;
+    },
+
+    async create(nuevaPersona) {
+        const persona = new Persona({
+            nombre: nuevaPersona.nombre,
+            urlFoto: nuevaPersona.urlFoto
+        });
+        const result = await persona.save();
+        return result;
+    },
+
+    async updateById(id, personaModificada) {
+        const persona = await Persona.findById(id);
+
+        if (persona == null) {
+            return undefined;
+        } else {
+            return await Object.assign(persona, personaModificada).save();
+        }
+    },
+
+    async update(personaModificada) {
+        return await this.updateById(personaModificada.id, personaModificada);
+    },
+
+    async delete(id) {
+        await Persona.findByIdAndRemove(id).exec();
+    }
+
+}
+```
+
+- El método `findAll()` tan solo necesita invocar al método `find` del modelo sin argumentos.
+- Algo parecido sucede con el método `findById()`, que invoca al mismo método del modelo.
+- Los métodos `create`, `updateById`, `update` y `delete` es similar al ejemplo anterior.
 
 
+> Por último, destacar que se ha añadido al repositorio una nueva versión de la colección de peticiones de postman, que incluye peticiones de ejemplo para esta API.
 
+En el caso del modelo de `Pelicula`, el código es el siguiente:
+
+`src/models/pelicula.js`
+
+```javascript
+import mongoose from 'mongoose';
+const {
+    Schema
+} = mongoose;
+
+const peliculaSchema = new Schema({
+    titulo: String,
+    portadaURL: String,
+    director: {
+        type: mongoose.ObjectId,
+        ref: 'Persona'
+    },
+    actores: [{
+        type: mongoose.ObjectId,
+        ref: 'Persona'
+    }]
+});
+
+const Pelicula = mongoose.model('Pelicula', peliculaSchema);
+
+```
+
+Definimos el esquema de `Pelicula`, donde las propiedades más complejas son `director` y `actores`:
+
+- `director` hace referencia al modelo de `Persona`. Esto se consigue indicando que el `type` es `mongoose.ObjectId` y el atributo `ref`, como cadena de caracteres, a `'Persona'`.
+- `actores` sería un array de referencias, también al modelo de `Persona`. Esto se consigue añadiendo los corchetes, y por tanto, indicando que es un array.
+
+Dentro del repositorio es donde vamos a utilizar la función `populate` para unificar los modelos de `Pelicula` y `Persona`:
+
+```javascript
+const PeliculaRepository = {
+
+    async findAll() {
+        return await Pelicula
+            .find()
+            .populate('director', 'nombre')
+            .populate('actores', 'nombre')
+            .exec();
+    },
+
+    async findById(id) {
+        return await Pelicula
+            .findById(id)
+            .populate('director')
+            .populate('actores')
+            .exec();
+    },
+
+    // por simplicidad, creamos una película sin actores
+    async create(nuevaPelicula) {
+        const pelicula = new Pelicula({
+            titulo: nuevaPelicula.titulo,
+            director: nuevaPelicula.director,
+            portadaURL: nuevaPelicula.portadaURL
+        });
+
+        const result = await pelicula.save();
+        return result;
+    },
+
+    async updateById(id, peliculaModificada) {
+        const pelicula = await Pelicula.findById(id);
+
+        if (pelicula == null) {
+            return undefined;
+        } else {
+            return await Object.assign(pelicula, peliculaModificada).save();
+        }
+    },
+
+    async update(peliculaModificada) {
+        return await this.updateById(peliculaModificada.id, peliculaModificada);
+    },
+
+    async delete(id) {
+        await Pelicula.findByIdAndRemove(id).exec();
+    }
+}
+```
+
+Destacan aquí los métodos de búsqueda:
+
+- En el caso del método `findAll()`, invocamos a `populate` para cada propiedad referenciada. Además, en lugar de devolver el objeto completo, se hace una _selección_ mostrando solamente el nombre.
+- En el caso del método `findById()`, invocamos también `populate`, pero en este caso, devolviendo los objetos completos.
+
+> Cabría preguntarse ahora, ¿es necesario hacer un populate a la hora de devolver los resultados de `create` y `update`?
+
+##  4.2 Controladores
+
+El controlador de `Persona` se parece mucho al controlador del ejemplo anterior:
+
+```javascript
+import { PersonaRepository } from '../models/persona';
+
+const PersonaController = {
+
+    todasLasPersonas: async (req, res) => {
+        const data = await PersonaRepository.findAll();
+        if (Array.isArray(data) && data.length > 0) 
+            res.json(data);
+        else
+            res.sendStatus(404);
+    },
+
+    personaPorId: async (req, res) => {
+        let persona = await PersonaRepository.findById(req.params.id);
+        if (persona != undefined)
+            res.json(persona);
+        else
+            res.sendStatus(404);
+    },
+
+    nuevaPersona: async (req, res) => {
+        let persona = await PersonaRepository.create({
+            nombre: req.body.nombre,
+            urlFoto: req.body.urlFoto
+        });
+        res.status(201).json(persona);
+    },
+
+    editarPersona: async (req, res) => {
+        let persona = await PersonaRepository
+                        .updateById(req.params.id, {
+                            nombre: req.body.nombre,
+                            urlFoto: req.body.urlFoto
+                        });
+        if (persona != undefined) {
+            res.json(persona);
+        } else {
+            res.sendStatus(404);
+        }
+    },
+
+    eliminarPersona: async (req, res) => {
+        await PersonaRepository.delete(req.params.id);
+        res.sendStatus(204);
+    }
+
+
+}
+
+export {
+    PersonaController
+}
+```
+
+Los cambios suceden más en el controlador de `Pelicula`. El esqueleto del código sería el siguiente:
+
+```javascript
+import {
+    PeliculaRepository
+} from '../models/pelicula';
+import {
+    PersonaRepository
+} from '../models/persona';
+
+const PeliculaController = {
+
+}
+```
+
+A partir de ahí, tendríamos los siguiente métodos, similar a los ejemplos anteriores:
+
+```javascript
+    todasLasPeliculas: async (req, res) => {
+        const data = await PeliculaRepository.findAll();
+        if (Array.isArray(data) && data.length > 0)
+            res.json(data);
+        else
+            res.sendStatus(404);
+    },
+
+    peliculaPorId: async (req, res) => {
+        let pelicula = await PeliculaRepository.findById(req.params.id);
+        if (pelicula != undefined)
+            res.json(pelicula);
+        else
+            res.sendStatus(404);
+    },
+
+    nuevaPelicula: async (req, res) => {
+        let pelicula = await PeliculaRepository.create({
+            titulo: req.body.titulo,
+            portadaURL: req.body.portadaURL,
+            director: req.body.director
+        });
+        res.status(201).json(pelicula);
+    },
+
+    editarPelicula: async (req, res) => {
+        let pelicula = await PeliculaRepository
+            .updateById(req.params.id, {
+                titulo: req.body.titulo,
+                portadaURL: req.body.portadaURL,
+                director: req.body.director
+            });
+        if (pelicula != undefined) {
+            res.json(pelicula);
+        } else {
+            res.sendStatus(404);
+        }
+    },
+
+    eliminarPelicula: async (req, res) => {
+        await PeliculaRepository.delete(req.params.id);
+        res.sendStatus(204);
+    },
+```
+
+Estos métodos son sencillos, y similares a los métodos del ejemplo anterior. Se añadirían dos nuevos métodos, que realizarán las siguientes acciones:
+
+-  Añadir un actor a una película
+-  Eliminar un actor de una película
+
+Los métodos serían los siguientes:
+
+```javascript
+    addActorPelicula: async (req, res) => {
+
+        let actor = await PersonaRepository.findById(req.params.id_actor);
+        if (actor != undefined) {
+            let pelicula = await PeliculaRepository.findById(req.params.id_pelicula);
+            if (pelicula != undefined) {
+                pelicula.actores.push(actor._id);
+                await pelicula.save();
+                // Volvemos a rescatar la película para aplicar los diferentes `populate`
+                // Seguramente este código se podría refactorizar y mejorar
+                res.json(await PeliculaRepository.findById(pelicula._id));
+            } else {
+                res.status(400).json({
+                    mensaje: `La película con ID: ${req.params.id_pelicula} no está registrada en la base de datos`
+                });
+            }
+        } else {
+            // Este manejo de error podría unificarse
+            // para una mejor gestión a través de un 
+            // middleware común
+            res.status(400).json({
+                mensaje: `El actor con ID: ${req.params.id_actor} no está registrado en la base de datos`
+            });
+        }
+
+    }
+```
+
+En este caso, la operativa del método sería la siguiente:
+
+- Buscamos la persona (actor) que queremos añadir por su `id`.
+- Si el actor existe, buscamos la película por su `id`.
+- Si la película existe, añadimos el actor al array de actores de la película, salvamos la película
+- Devolvemos la película (invocando a `findById` para rellenar sus propiedades referenciadas)
+- Si hay algún error, devolvemos un mensaje de error.
+
+```javascript
+    delActorPelicula: async (req, res) => {
+        let pelicula = await PeliculaRepository.findById(req.params.id_pelicula);
+        if (pelicula != undefined) {
+            pelicula.actores.pull(req.params.id_actor);
+            await pelicula.save();
+            // Volvemos a rescatar la película para aplicar los diferentes `populate`
+            // Seguramente este código se podría refactorizar y mejorar
+            res.json(await PeliculaRepository.findById(pelicula._id));
+        } else {
+            res.status(400).json({
+                mensaje: `La película con ID: ${req.params.id_pelicula} no está registrada en la base de datos`
+            });
+        }
+    }
+```
+
+En este otro caso, la sistemática del método sería:
+
+- No hace falta buscar el actor y verificar si existe (vemos después por qué)
+- Buscamos la película por su `id`.
+- Si la película existe, extraemos el actor (si el actor no existe, esta operación básicamente no hace nada)
+- Almacenamos los cambios
+- Devolvemos la película (invocando a `findById` para rellenar sus propiedades referenciadas)
+- Si hay algún error, devolvemos un mensaje de error.
+
+## 4.3 Rutas
+
+El código de enrutamiento sería el siguiente
+
+`src/routes/persona.js`
+
+```javascript
+import { Router } from 'express';
+import { PersonaController } from '../controllers/persona';
+
+const router = Router();
+
+router.get('/', PersonaController.todasLasPersonas);
+
+router.get('/:id', PersonaController.personaPorId);
+
+router.post('/', PersonaController.nuevaPersona);
+
+router.put('/:id', PersonaController.editarPersona);
+
+router.delete('/:id', PersonaController.eliminarPersona);
+
+export default router;
+```
+
+El código anterior es sencillo. El código para `Pelicula` sí añade algunas rutas no habituales
+
+`src/routes/pelicula.js`
+
+```javascript
+import { Router } from 'express';
+import { PeliculaController } from '../controllers/pelicula';
+
+const router = Router();
+
+router.get('/', PeliculaController.todasLasPeliculas);
+
+router.get('/:id', PeliculaController.peliculaPorId);
+
+router.post('/', PeliculaController.nuevaPelicula);
+
+router.put('/:id', PeliculaController.editarPelicula);
+
+router.delete('/:id', PeliculaController.eliminarPelicula);
+
+router.post('/:id_pelicula/actor/:id_actor', PeliculaController.addActorPelicula);
+
+router.delete('/:id_pelicula/actor/:id_actor', PeliculaController.delActorPelicula);
+
+export default router;
+```
+
+Como podemos observar, las dos últimas peticiones son diferentes a las habituales. Reciben el `id_pelicula` y el `id_actor` para poder realizar las operaciones.
 
 # Bibliografía
 
