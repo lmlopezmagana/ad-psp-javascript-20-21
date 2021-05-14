@@ -575,7 +575,7 @@ A la hora de hacer la petición, si no proporcionamos un token válido, obtenemo
 
 Si enviamos un token válido, se crean los nuevos posts.
 
-![Petición POST con token](./peticion-post-con-token.png
+![Petición POST con token](./peticion-post-con-token.png)
 
 ## 7.6 ¿Qué quedaría pendiente?
 
